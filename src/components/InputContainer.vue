@@ -36,7 +36,7 @@
             <div class="total-amount">
                 <div class="text">
                     <p>Total</p>
-                    <p class="person">/ person</p>customTipAmount
+                    <p class="person">/ person</p>
                 </div>
                 <div class="amount" id="total-amount"> <span v-if="tipVisibility && totalVisibility"> {{billPerPerson}}</span></div>
             </div>
