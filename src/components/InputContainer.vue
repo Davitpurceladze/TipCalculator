@@ -2,21 +2,21 @@
     <div class="bill">
         <div class="input"> 
                 <label for="bill"  >Bill</label>
-                <input type="number" id="bill-input" class="bill-input">
+                <input type="number" id="bill-input" class="bill-input" v-model="bill">
                 <label for="">Select Tip %</label>
             <div class="tip">
-                <div class="tips tip-5">5%</div>
-                <div class="tips tip-10">10%</div>
-                <div class="tips tip-15 active-tip" >15%</div>
-                <div class="tips tip-25">25%</div>
-                <div class="tips tip-50">50%</div>
-                <div  id="tip-custom"><input type="number" class="tip-custom" placeholder="CUSTOM"></div>
+                <div class="tips tip-5" @click="tip('5')">5%</div>
+                <div class="tips tip-10" @click="tip('10')" >10%</div>
+                <div class="tips tip-15 active-tip" @click="tip('15')" >15%</div>
+                <div class="tips tip-25" @click="tip('25')">25%</div>
+                <div class="tips tip-50" @click="tip('50')">50%</div>
+                <div  id="tip-custom"><input type="number" class="tip-custom" placeholder="CUSTOM" v-model="customTip"></div>
             </div>
             <div class="people-label">
-                <label for="">Number of People</label>
+                <label for="" >Number of People</label>
                 <label for="" class="error"> Can't be Zero</label>
             </div>
-            <input type="number" class="people-input">
+            <input type="number" class="people-input" v-model="numberOfPeople">
         </div>
         <div class="result">
             <div class="tip-amount">
@@ -24,23 +24,79 @@
                     <p>Tip Amount</p>
                     <p class="person">/ person</p>
                 </div>
-                <div class="amount" id="tip-amount">$4.27</div>
+                <div class="amount" id="tip-amount"> <span v-if="tipVisibility && totalVisibility" > {{tipPerPerson}} </span></div>
             </div>
             <div class="total-amount">
                 <div class="text">
                     <p>Total</p>
-                    <p class="person">/ person</p>
+                    <p class="person">/ person</p>customTipAmount
                 </div>
-                <div class="amount" id="total-amount">$32.79</div>
+                <div class="amount" id="total-amount"> <span v-if="tipVisibility && totalVisibility"> {{billPerPerson}}</span></div>
             </div>
-            <div class="reset">RESET</div>
+            <div class="reset" @click="reset">RESET</div>
         </div>
     </div>
 </template>
 
 <script>
+import {ref, computed, watch} from 'vue'
 export default {
-    
+    setup() {
+        const bill = ref(null)
+        const tipTotal = ref(null)
+        const numberOfPeople = ref(null)
+        const customTip = ref(null)
+        const tipVisibility = ref(false)
+        const totalVisibility = ref(false)
+
+        function tip(perc) {
+            tipTotal.value = bill.value * perc / 100
+        }
+
+        watch(customTip, function(newValues) {
+            if(newValues > 0 ) {
+                tipTotal.value = bill.value * newValues / 100
+            }
+        })
+        
+        const tipPerPerson = computed(function() {
+            return tipTotal.value / numberOfPeople.value
+        })
+
+        const billPerPerson = computed(function() {
+            return (bill.value + tipTotal.value) / numberOfPeople.value
+        })
+
+        watch([bill, numberOfPeople], function(newValues,) {
+            if(newValues[0] > 0 && newValues[1] > 0) {
+                tipVisibility.value = true
+                totalVisibility.value = true
+            }
+        })
+
+        function reset() {
+
+             bill.value = null
+             tipTotal.value= null
+             numberOfPeople.value = null
+             customTip.value = null
+             tipVisibility.value = false
+             totalVisibility.value = false  
+        }
+
+        return {
+            bill,
+            tip,
+            numberOfPeople,
+            tipPerPerson,
+            billPerPerson,
+            customTip,
+            tipVisibility, 
+            totalVisibility,
+            reset
+            }
+    }
+
 }
 </script>
 
