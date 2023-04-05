@@ -1,5 +1,6 @@
 <template>
-  <div class="container">
+  <div class="container"> 
+    
     <div class="logo"><img src="./assets/logo.svg" alt=""></div>
     <input-container></input-container>
   </div>
