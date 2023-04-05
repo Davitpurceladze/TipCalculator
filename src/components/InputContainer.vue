@@ -2,21 +2,28 @@
     <div class="bill">
         <div class="input"> 
                 <label for="bill"  >Bill</label>
-                <input type="number" id="bill-input" class="bill-input" v-model="bill">
+                <input type="number" id="bill-input" class="bill-input " :class="{ validInput: billInputValidity === true}" v-model="bill">
                 <label for="">Select Tip %</label>
             <div class="tip">
-                <div class="tips tip-5" @click="tip('5')">5%</div>
-                <div class="tips tip-10" @click="tip('10')" >10%</div>
-                <div class="tips tip-15 active-tip" @click="tip('15')" >15%</div>
-                <div class="tips tip-25" @click="tip('25')">25%</div>
-                <div class="tips tip-50" @click="tip('50')">50%</div>
-                <div  id="tip-custom"><input type="number" class="tip-custom" placeholder="CUSTOM" v-model="customTip"></div>
+                <div class="tips tip-5" :class="{activeTip: tipPercent == 5 }" @click="tip('5')">5%</div>
+                <div class="tips tip-10" :class="{activeTip: tipPercent == 10 }" @click="tip('10')" >10%</div>
+                <div class="tips tip-15" :class="{activeTip: tipPercent == 15 }" @click="tip('15')" >15%</div>
+                <div class="tips tip-25" :class="{activeTip: tipPercent == 25 }" @click="tip('25')">25%</div>
+                <div class="tips tip-50" :class="{activeTip: tipPercent == 50 }" @click="tip('50')">50%</div>
+                <div  id="tip-custom"><input type="number" class="tip-custom" :class="{validInput: customTipValidity === true }" placeholder="CUSTOM" v-model="customTip"></div>
             </div>
             <div class="people-label">
                 <label for="" >Number of People</label>
-                <label for="" class="error"> Can't be Zero</label>
+                <label for="" class="error" v-show="numberOfPeopleValidity === 'invalid'"> Can't be Zero</label>
             </div>
-            <input type="number" class="people-input" v-model="numberOfPeople">
+            <input 
+            type="number" 
+            class="people-input" 
+            :class="{   
+                validInput: numberOfPeopleValidity === 'valid', 
+                invalidInput: numberOfPeopleValidity === 'invalid'
+                }" 
+            v-model="numberOfPeople">
         </div>
         <div class="result">
             <div class="tip-amount">
@@ -48,23 +55,26 @@ export default {
         const customTip = ref(null)
         const tipVisibility = ref(false)
         const totalVisibility = ref(false)
+        const tipPercent = ref(null)
 
         function tip(perc) {
             tipTotal.value = bill.value * perc / 100
+            tipPercent.value = perc
         }
 
         watch(customTip, function(newValues) {
             if(newValues > 0 ) {
                 tipTotal.value = bill.value * newValues / 100
+                tipPercent.value = newValues
             }
         })
         
         const tipPerPerson = computed(function() {
-            return tipTotal.value / numberOfPeople.value
+            return (tipTotal.value / numberOfPeople.value).toFixed(2)
         })
 
         const billPerPerson = computed(function() {
-            return (bill.value + tipTotal.value) / numberOfPeople.value
+            return ((bill.value + tipTotal.value) / numberOfPeople.value).toFixed(2)
         })
 
         watch([bill, numberOfPeople], function(newValues,) {
@@ -76,13 +86,41 @@ export default {
 
         function reset() {
 
-             bill.value = null
-             tipTotal.value= null
-             numberOfPeople.value = null
-             customTip.value = null
-             tipVisibility.value = false
-             totalVisibility.value = false  
+            bill.value = null
+            tipTotal.value= null
+            numberOfPeople.value = null
+            customTip.value = null
+            tipVisibility.value = false
+            totalVisibility.value = false
+            tipPercent.value = null  
         }
+
+        const billInputValidity = ref(false)
+        const numberOfPeopleValidity = ref("pending")
+        const customTipValidity = ref(false)
+
+        watch([bill, numberOfPeople, customTip], function(newValues) {
+            if(newValues[0] > 0 ) {
+                billInputValidity.value = true
+            } else {
+                billInputValidity.value = false
+            }
+
+            if(newValues[1] > 0) {
+                numberOfPeopleValidity.value = 'valid'
+            } else if( newValues[1] === 0) {
+                numberOfPeopleValidity.value = 'invalid'
+                
+            }else {
+                numberOfPeopleValidity.value = 'pending'
+            }
+
+            if(newValues[2] > 0) {
+                customTipValidity.value = true
+            } else {
+                customTipValidity.value = false
+            }
+        })
 
         return {
             bill,
@@ -93,7 +131,12 @@ export default {
             customTip,
             tipVisibility, 
             totalVisibility,
-            reset
+            tipPercent,
+            reset,
+            billInputValidity,
+            numberOfPeopleValidity,
+            customTipValidity
+            
             }
     }
 
@@ -101,6 +144,15 @@ export default {
 </script>
 
 <style scoped>
+.validInput {
+    border: 2px solid #26C2AE
+}
+
+.invalidInput {
+    border: 2px solid red
+}
+
+
 .bill-input {
   background-image: url('../assets/icon-dollar.svg');
   margin-bottom: 36px;
@@ -132,7 +184,7 @@ export default {
     width: 100%;
 }
 
-.active-tip {
+.activeTip {
     color: #00474B;
     background-color: #26C2AE;
     font-weight: bolder;
